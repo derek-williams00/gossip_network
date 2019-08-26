@@ -10,6 +10,9 @@ def create_peer_file():
     with open(PEER_DATA_FILE, "w") as file:
         json.dump(data, file)
 
+class Message():
+    def __init__(self):
+        pass
 
 class PeerManager:
     def __init__(self):

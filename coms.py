@@ -48,7 +48,7 @@ class GcpOverTcp:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((addr, PORT))
         sock.send(msg)
-        self.box.append(Messagehandler(sock, addr, self.addrs))
+        self.box.append(MessageHandler(sock, addr, self.addrs))
 
     def check(self, addr):
         self.send_msg(addr, COMCODES["check"])

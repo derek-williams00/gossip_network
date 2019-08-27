@@ -33,7 +33,7 @@ class GcpOverTcp:
         #Handle new messages
         client, addr = self.server.accept()
         self.addrs.handle(addr)
-        new_message = Messagehandler(client, addr, self.addrs)
+        new_message = MessageHandler(client, addr, self.addrs)
         self.box.append(new_message)
 
     def trim_box(self):

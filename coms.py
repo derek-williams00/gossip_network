@@ -28,6 +28,15 @@ class GcpOverTcp:
         self.server.listen(MAX_CONS)
 
     def handle(self):
+        self.trim_box()
+
+        #Handle new messages
+        client, addr = self.server.accept()
+        self.addrs.handle(addr)
+        new_message = Messagehandler(client, addr, self.addrs)
+        self.box.append(new_message)
+
+    def trim_box(self):
         #Clear box of completed communications
         new_box = []
         for handler in self.box:
@@ -35,15 +44,28 @@ class GcpOverTcp:
                 new_box.append(handler)
         self.box = new_box
 
-        #Handle new messages
-        client, addr = self.server.accept()
-        self.addrs.handle(addr)
-        new_message = Messagehandler(client, addr, self.addrs)
-        self.box.append(new_message)
-        
+    def send_msg(self, addr, msg):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((addr, PORT))
+        sock.send(msg)
+        self.box.append(Messagehandler(sock, addr, self.addrs))
+
+    def check(self, addr):
+        self.send_msg(addr, COMCODES["check"])
+        print("Checking {}".format(addr))
+
+    def farewell(self, addr):
+        self.send_msg(addr, COMCODES["farewell"])
+        print("Saying farewell to {}".format(addr))
     
     def find_peers(self):
         pass
+
+    def close(self):
+        self.trim_box()
+        for addr in self.addrs.get_all_current():
+            self.farewell(addr)
+        self.addrs.update_file()
 
 
 class MessageHandler(Thread):
@@ -57,10 +79,13 @@ class MessageHandler(Thread):
     def run(self):
         self.header_byte = client.recv(1)
         if self.header_byte == COMCODES["check"]:
+            print("Check from {}".format(self.addr))
             client.send(COMCODES["acknowledge"])
         elif self.header_byte == COMCODES["acknowledge"]:
+            print("{} acknowledges".format(self.addr))
             self.addrbook.maintain(self.addr)
         elif self.header_byte == COMCODES["farewell"]:
+            print("{} says farewell".format(self.addr))
             self.addrbook.archive(self.addr)
         client.close()
         self.complete = True
@@ -94,13 +119,16 @@ class AddressBook():
     def add(self, addr):
         if not (addr in self.addrs):
             self.addrs.append(addr)
+            print("Address {} added".format(addr))
 
     def remove(self, addr):
         self.addrs.remove(addr)
+        print("Address {} removed".format(addr))
 
     def archive(self, addr):
         self.remove(addr)
         self.archives.append(addr)
+        print("Address {} archived".format(addr))
 
     #! Add timer for every addr and maintain resets it
     def maintain(self, addr):
@@ -115,6 +143,10 @@ class AddressBook():
     #! Update json file with current addrs
     def update_file(self):
         pass
+
+    def get_all_current(self):
+        #? Should this return a copy? 
+        return self.addrs
         
         
 

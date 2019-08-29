@@ -31,7 +31,7 @@ class IncpOverTcp:
             file.close()
 
         #Create answering machine
-        self.answering_machine = AnsweringMachine()
+        self.answering_machine = AnsweringMachine(self)
         
 
     def answer_calls(self):

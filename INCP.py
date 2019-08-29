@@ -87,11 +87,11 @@ class Dialogue(Thread):
     def __init__(self, addr, socket=None):
         Thread.__init__(self)
         self.addr = addr
-        self.socket = None
+        self.socket = socket
         self.am_caller = False
         self.greeting = None
         #This node is the caller if no socket is provided
-        if socket == None:
+        if self.socket == None:
             print("<INCP> Starting dialogue with {}".format(self.addr))
             self.am_caller = True
             self.greeting = DEFAULT_GREETING

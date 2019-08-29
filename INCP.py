@@ -30,6 +30,10 @@ class IncpOverTcp:
             json.dump(self.peers, file)
             file.close()
 
+        #Create answering machine
+        self.answering_machine = AnsweringMachine()
+        
+
     def answer_calls(self):
         while not self.on:
             client, (addr, port) = self.server.accept()
@@ -54,7 +58,6 @@ class IncpOverTcp:
         self.on = True
 
         #Start answering calls on seperate thread
-        self.answering_machine = Thread(self.answer_calls)
         print("Starting answering machine")
         self.answering_machine.start()
 
@@ -64,6 +67,21 @@ class IncpOverTcp:
         file = open(FILE, "w")
         json.dump(self.peers, file)
         file.close()
+
+
+class AnsweringMachine(Thread):
+    def __init__(self, com):
+        Thread.__init__(self)
+        self.com = com
+
+    def run(self):
+        while not self.com.on:
+            client, (addr, port) = self.com.server.accept()
+            print("Call from {} over port {}".format(addr, port))
+            self.com.peers[addr] = True
+            dialogue = Dialogue(addr, client)
+            dialogue.start()
+            self.com.dialogues.append(dialogue)
 
 
 

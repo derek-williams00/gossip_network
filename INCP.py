@@ -58,7 +58,6 @@ class IncpOverTcp:
         self.on = True
 
         #Start answering calls on seperate thread
-        print("<INCP> Starting answering machine")
         self.answering_machine.start()
 
     def stop(self):
@@ -75,7 +74,8 @@ class AnsweringMachine(Thread):
         self.com = com
 
     def run(self):
-        while not self.com.on:
+        print("<INCP> Starting answering machine")
+        while self.com.on:
             client, (addr, port) = self.com.server.accept()
             print("<INCP> Call from {} over port {}".format(addr, port))
             self.com.peers[addr] = True

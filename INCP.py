@@ -25,7 +25,7 @@ class IncpOverTcp:
             file.close()
         except FileNotFoundError:
             print("Peer data file {} not found".format(FILE))
-            print("Creating peer data file {}".format(File))
+            print("Creating peer data file {}".format(FILE))
             file = open(FILE, "w")
             json.dump(self.peers, file)
             file.close()

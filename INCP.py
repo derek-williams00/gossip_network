@@ -32,16 +32,6 @@ class IncpOverTcp:
 
         #Create answering machine
         self.answering_machine = AnsweringMachine(self)
-        
-
-    def answer_calls(self):
-        while not self.on:
-            client, (addr, port) = self.server.accept()
-            print("<INCP> Call from {} over port {}".format(addr, port))
-            self.peers[addr] = True
-            dialogue = Dialogue(addr, client)
-            dialogue.start()
-            self.dialogues.append(dialogue)
 
     def call(self, addr):
         print("<INCP> Calling {}".format(addr))
@@ -68,6 +58,7 @@ class IncpOverTcp:
         file.close()
 
 
+
 class AnsweringMachine(Thread):
     def __init__(self, com):
         Thread.__init__(self)
@@ -91,14 +82,22 @@ ACK = b'\x02'
 DEFAULT_GREETING = b'\x03'
 CHECK = b'\x03'
 
+
 class Dialogue(Thread):
     def __init__(self, addr, socket=None):
         Thread.__init__(self)
         self.addr = addr
         self.socket = None
+        self.am_caller = False
+        self.greeting = None
         #This node is the caller if no socket is provided
-        self.am_caller = (socket == None)
-        self.greeting = DEFAULT_GREETING
+        if socket == None:
+            print("<INCP> Starting dialogue with {}".format(self.addr))
+            self.am_caller = True
+            self.greeting = DEFAULT_GREETING
+        else:
+            print("<INCP> Dialogue started by {}".format(self.addr))
+        
 
     def set_greeting(self, greeting):
         self.greeting = greeting

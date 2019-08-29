@@ -98,7 +98,7 @@ class Dialogue(Thread):
         else:
             print("<INCP> Dialogue started by {}".format(self.addr))
         
-
+ 
     def set_greeting(self, greeting):
         self.greeting = greeting
 

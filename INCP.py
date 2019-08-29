@@ -41,18 +41,30 @@ class IncpOverTcp:
 
     def start(self):
         print("<INCP> Starting INCP/TCP")
-        self.hostname = socket.gethostname()
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind((self.hostname, PORT))
+        self.server.bind(('', PORT))
         self.server.listen()
         self.on = True
-
         #Start answering calls on seperate thread
         self.answering_machine.start()
 
     def stop(self):
         print("<INCP> Stopping INCP/TCP")
         self.on = False
+
+        #Close all remaining dialogues and sockets
+        for dialogue in self.dialogues:
+                dialogue.close()
+
+        #Filter remaining dialogues until all have closed
+        while len(self.dialogues) > 0:
+            remaining = []
+            for dialogue in self.dialogues:
+                if not dialogue.closed:
+                    remaining.append(dialogue)
+            self.dialogues = remaining
+            
+        #Save current peer addresses
         file = open(FILE, "w")
         json.dump(self.peers, file)
         file.close()
@@ -90,6 +102,7 @@ class Dialogue(Thread):
         self.socket = socket
         self.am_caller = False
         self.greeting = None
+        self.closed = False
         #This node is the caller if no socket is provided
         if self.socket == None:
             print("<INCP> Starting dialogue with {}".format(self.addr))
@@ -101,6 +114,11 @@ class Dialogue(Thread):
  
     def set_greeting(self, greeting):
         self.greeting = greeting
+
+    def close(self):
+        self.socket.shutdown(socket.SHUT_RDWR)
+        self.socket.close()
+        self.closed = True
 
     def run(self):
         if self.am_caller:

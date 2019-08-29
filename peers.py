@@ -1,30 +1,72 @@
 import json
 import socket
+from threading import Thread
 
-PEER_DATA_FILE = "peers.json"
+PEERS_DATA_FILE = "peers.json"
+PORT = 2019
+MAX_CONNECTIONS = 5
+BUFFER_SIZE = 1
 
-def create_peer_file():
-    data = dict()
-    data["known_peers"] = []
-    data["current_peers"] = []
-    with open(PEER_DATA_FILE, "w") as file:
-        json.dump(data, file)
+COMCODES = {
+    "on": b'\x01',
+    "off": b'\x00',
+    "ack": b'\x02'
+}
 
-class Message():
-    def __init__(self):
+
+class Peer:
+    def __init__(self, addr):
+        self.addr = addr
+        self.is_on = False
+
+    def notify_online(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.addr, PORT))
+        sock.send(COMCODES["on"])
+        sock.
+
+    def notify_offline(self):
         pass
+
+    def acknowledge(self):
+        pass
+
 
 class PeerManager:
     def __init__(self):
-        self.known_peers = list()
-        self.current_peers = list()
-        with open(PEER_DATA_FILE) as file:
+        #Create list of peer objects
+        self.peers = []
+
+        #Load peer data from json file
+        try:
+            file = open(PEERS_DATA_FILE)
             peers_json = json.load(file)
-            self.known_peers = peers_json["known_peers"]
-            self.current_peers = peers_json["current_peers"]
+            addrs = peers_json["peers"]
+            for addr in addrs:
+                self.add_peer(addr)
+            file.close()
+        except FileNotFoundError:
+            file = open(PEERS_DATA_FILE, "w")
+            data = dict()
+            data["peers"] = []
+            json.dump(data, file)
+            file.close()
+
+        #Create server socket
         self.hostname = socket.gethostname()
-        self.inbox = list()
-        self.outbox = list()
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind((self.hostname, PORT))
+        self.server.listen(MAX_CONNECTIONS)
+
+        #Notify known peers
+        if len(self.peers) > 0:
+            for peer in self.peers:
+                peer.notify_online()
+
+
+    def add_peer(self, addr):
+        self.peers.append(Peer(addr))
+        
 
     
         

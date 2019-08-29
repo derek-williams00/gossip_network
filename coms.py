@@ -77,7 +77,7 @@ class MessageHandler(Thread):
         self.complete = False
 
     def run(self):
-        self.header_byte = client.recv(1)
+        self.header_byte = client.rev(1)
         if self.header_byte == COMCODES["check"]:
             print("Check from {}".format(self.addr))
             client.send(COMCODES["acknowledge"])
